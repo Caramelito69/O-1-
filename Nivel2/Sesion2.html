@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S1 — Estructuras de Decisión · FUERTHEX EDU</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+
+/* =============================================
+   BASE
+============================================= */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red:    #CC0022;
+  --pink:   #FF2D78;
+  --white:  #F0F0F0;
+  --dim:    rgba(240,240,240,0.45);
+  --dim2:   rgba(240,240,240,0.2);
+  --dim3:   rgba(240,240,240,0.08);
+  --rborder: rgba(204,0,34,0.25);
+  --green:  #00CC66;
+  --green2: rgba(0,204,102,0.5);
+  --blue:   #5599FF;
+}
+
+body {
+  background: #0a0a0a;
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--white);
+}
+
+.page-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 56px 20px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: var(--pink);
+  text-transform: uppercase;
+  padding: 32px 0 10px 2px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(255,45,120,0.3), transparent);
+}
+
+/* =============================================
+   SLIDE BASE
+============================================= */
+.slide {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--rborder);
+}
+
+/* Fx layers */
+.fx-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(204,0,34,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204,0,34,0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+}
+.fx-grid-fine {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(204,0,34,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204,0,34,0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+.fx-noise {
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.35; pointer-events: none;
+}
+.fx-scan {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none;
+}
+
+/* HUD corners */
+.hud-tl, .hud-tr, .hud-bl, .hud-br { position: absolute; width: 16px; height: 16px; }
+.hud-tl { top: 8px; left: 8px; border-top: 1px solid rgba(204,0,34,0.6); border-left: 1px solid rgba(204,0,34,0.6); }
+.hud-tr { top: 8px; right: 8px; border-top: 1px solid rgba(204,0,34,0.4); border-right: 1px solid rgba(204,0,34,0.4); }
+.hud-bl { bottom: 8px; left: 8px; border-bottom: 1px solid rgba(204,0,34,0.4); border-left: 1px solid rgba(204,0,34,0.4); }
+.hud-br { bottom: 8px; right: 8px; border-bottom: 1px solid rgba(255,45,120,0.5); border-right: 1px solid rgba(255,45,120,0.5); }
+
+/* HUD topbar */
+.hud-topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 28px; background: rgba(0,0,0,0.7);
+  border-bottom: 1px solid var(--rborder);
+  display: flex; align-items: center;
+  padding: 0 12px; gap: 8px; z-index: 10;
+}
+.hud-topbar .logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 11px;
+  letter-spacing: 3px; color: var(--white);
+  display: flex; align-items: center; gap: 4px;
+}
+.hud-topbar .logo .f-icon {
+  width: 14px; height: 14px; background: var(--red);
+  clip-path: polygon(0 0, 70% 0, 100% 50%, 70% 100%, 0 100%, 30% 50%);
+  flex-shrink: 0;
+}
+.hud-topbar .logo span { color: var(--red); }
+.hud-topbar .corp { font-family: 'Space Mono', monospace; font-size: 5px; letter-spacing: 2px; color: var(--dim2); display: block; line-height: 1; margin-top: 1px; }
+.hud-topbar .nav-dots { display: flex; gap: 5px; margin-left: 12px; }
+.hud-topbar .nav-dots span { font-family: 'Space Mono', monospace; font-size: 6px; letter-spacing: 2px; color: var(--dim2); }
+.hud-topbar .nav-dots span + span::before { content: '·'; margin-right: 5px; }
+.hud-topbar .slide-num { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 3px; color: var(--red); }
+.hud-topbar .resize-ico { width: 10px; height: 10px; border: 1px solid rgba(240,240,240,0.15); margin-left: 8px; position: relative; }
+.hud-topbar .resize-ico::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 4px; height: 4px; border-bottom: 1px solid var(--red); border-right: 1px solid var(--red); }
+
+/* HUD sidenav */
+.hud-sidenav {
+  position: absolute; left: 0; top: 28px; bottom: 0;
+  width: 36px; background: rgba(0,0,0,0.55);
+  border-right: 1px solid var(--rborder);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0 8px; gap: 0; z-index: 10;
+}
+.hud-sidenav .slide-num-big { font-family: 'Bebas Neue', sans-serif; font-size: clamp(10px, 2.5vw, 22px); color: var(--red); line-height: 1; }
+.hud-sidenav .slide-num-sub { font-family: 'Space Mono', monospace; font-size: 5px; color: var(--dim2); text-transform: uppercase; writing-mode: vertical-lr; margin-top: 6px; letter-spacing: 2px; }
+.hud-sidenav .side-dots { margin-top: auto; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.hud-sidenav .side-dots span { width: 3px; height: 3px; background: rgba(204,0,34,0.4); display: block; }
+.hud-sidenav .side-dots span.active { background: var(--red); }
+
+/* HUD bottom */
+.hud-bottom {
+  position: absolute; bottom: 0; left: 36px; right: 0;
+  height: 22px; background: rgba(0,0,0,0.5);
+  border-top: 1px solid var(--rborder);
+  display: flex; align-items: center;
+  padding: 0 10px; gap: 8px; z-index: 10;
+}
+.hud-bottom .brand { font-family: 'Bebas Neue', sans-serif; font-size: 8px; letter-spacing: 4px; color: rgba(240,240,240,0.2); }
+.hud-bottom .brand span { color: rgba(204,0,34,0.45); }
+.hud-bottom .bar-deco { height: 1px; width: 40px; background: linear-gradient(90deg, var(--red), transparent); }
+.hud-bottom .page-info { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 6px; letter-spacing: 3px; color: var(--dim2); }
+.hud-bottom .tag-right { font-family: 'Space Mono', monospace; font-size: 6px; letter-spacing: 2px; color: rgba(255,45,120,0.35); margin-left: 10px; }
+
+/* Scan line animation on slides */
+.slide::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent);
+  animation: scan-line 6s linear infinite; pointer-events: none; z-index: 5;
+}
+@keyframes scan-line { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes pulse-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+/* =============================================
+   SLIDE CONTENT AREAS
+============================================= */
+.slide-body {
+  position: absolute;
+  top: 28px; left: 36px; bottom: 22px; right: 0;
+  overflow: hidden;
+}
+
+/* Generic content area */
+.sc {
+  position: absolute;
+  top: 28px; left: 36px; bottom: 22px; right: 0;
+  padding: 5% 6%;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.sc.pad-top { justify-content: flex-start; padding-top: 4%; }
+
+/* Tag */
+.tag {
+  font-family: 'Space Mono', monospace; font-size: clamp(4px,0.85vw,8px);
+  letter-spacing: 4px; color: var(--pink); text-transform: uppercase; margin-bottom: 2%;
+}
+
+/* H1 / H2 */
+.sc h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(24px,8vw,80px); line-height: 0.88; letter-spacing: 1px; color: var(--white);
+}
+.sc h1 .accent { color: var(--red); }
+.sc h1 .outline { -webkit-text-stroke: 1px rgba(240,240,240,0.22); color: transparent; }
+
+.sc h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(14px,3.5vw,36px); letter-spacing: 2px; color: var(--white);
+  line-height: 0.95; margin-bottom: 3%;
+}
+.sc h2 span { color: var(--red); }
+.sc h2 .pk  { color: var(--pink); }
+
+/* Body text */
+.sc .body {
+  font-size: clamp(7px,1.4vw,13px); font-weight: 300;
+  color: var(--dim); line-height: 1.7; max-width: 80%;
+}
+.sc .body.wide { max-width: 95%; }
+
+/* Eyebrow */
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: clamp(5px,1vw,9px);
+  letter-spacing: 5px; color: var(--pink); text-transform: uppercase;
+  margin-bottom: 3%; display: flex; align-items: center; gap: 10px;
+}
+.eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--pink); }
+
+/* =============================================
+   PSEUDOCODE BLOCK
+============================================= */
+.pseudo-block {
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(204,0,34,0.35);
+  padding: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(6px,1.2vw,12px);
+  line-height: 1.9;
+  position: relative;
+  overflow: hidden;
+}
+.pseudo-block::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--red), var(--pink), transparent);
+}
+.pseudo-block .pb-bar {
+  background: rgba(204,0,34,0.08);
+  border-bottom: 1px solid rgba(204,0,34,0.2);
+  padding: 4px 10px;
+  font-size: clamp(4px,0.75vw,7px);
+  letter-spacing: 3px; color: var(--pink); text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.pseudo-block .pb-bar .pb-dot {
+  width: 5px; height: 5px; background: var(--red);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.pseudo-block .pb-body { padding: 8px 12px; }
+
+/* Pseudocode token colors */
+.pk-kw  { color: #FF2D78; }      /* keyword: si, sino, fin */
+.pk-cond { color: #FFB800; }     /* condition text */
+.pk-val  { color: #00CC66; }     /* values / literals */
+.pk-op   { color: #5599FF; }     /* operators: Y, O, NO */
+.pk-act  { color: var(--white); }/* action / execution */
+.pk-cm   { color: rgba(240,240,240,0.3); font-style: italic; } /* comment */
+.pk-var  { color: #FF9944; }     /* variable */
+.pk-ind  { padding-left: 2em; display: block; }
+.pk-ind2 { padding-left: 4em; display: block; }
+
+/* =============================================
+   BULLET LIST
+============================================= */
+.bullet-list {
+  display: flex; flex-direction: column; gap: 3%;
+  margin-top: 2%;
+}
+.bullet-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: clamp(7px,1.5vw,14px); font-weight: 400;
+  color: var(--dim); line-height: 1.4;
+}
+.bullet-item .bi-dot {
+  width: 6px; height: 6px; background: var(--red); flex-shrink: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  margin-top: 0.3em;
+}
+.bullet-item .bi-dot.green { background: var(--green); }
+.bullet-item .bi-dot.pink  { background: var(--pink); }
+.bullet-item strong { color: var(--white); font-weight: 700; }
+
+/* =============================================
+   TWO-COL LAYOUT
+============================================= */
+.two-col { display: flex; gap: 4%; align-items: flex-start; }
+.col-l { flex: 1; }
+.col-r { flex: 1; }
+.col-35 { flex: 0 0 35%; }
+.col-55 { flex: 0 0 55%; }
+.col-45 { flex: 0 0 45%; }
+
+/* =============================================
+   INFO CARDS
+============================================= */
+.info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 3%; }
+.info-card {
+  border: 1px solid rgba(204,0,34,0.2);
+  background: rgba(204,0,34,0.03);
+  padding: 8px;
+  position: relative; overflow: hidden;
+}
+.info-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--red), transparent);
+}
+.info-card .ic-title {
+  font-family: 'Rajdhani', sans-serif; font-weight: 700;
+  font-size: clamp(6px,1.2vw,11px); letter-spacing: 2px;
+  color: var(--white); text-transform: uppercase; margin-bottom: 4px;
+}
+.info-card .ic-text {
+  font-size: clamp(5px,1vw,9px); font-weight: 300;
+  color: var(--dim); line-height: 1.5;
+}
+.info-card .ic-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(18px,4vw,40px); color: var(--red); line-height: 1;
+}
+.info-card .ic-label {
+  font-family: 'Space Mono', monospace; font-size: clamp(4px,0.7vw,7px);
+  letter-spacing: 2px; color: var(--dim2); text-transform: uppercase;
+}
+
+/* =============================================
+   TABLE
+============================================= */
+.data-table { width: 100%; border-collapse: collapse; margin-top: 2%; }
+.data-table th {
+  font-family: 'Space Mono', monospace; font-size: clamp(4px,0.85vw,8px);
+  letter-spacing: 3px; text-transform: uppercase; padding: 5px 8px;
+  border-bottom: 1px solid var(--rborder); text-align: left;
+  color: var(--pink);
+}
+.data-table td {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(5px,1vw,9px); color: var(--dim);
+  padding: 5px 8px; border-bottom: 1px solid rgba(204,0,34,0.08);
+}
+.data-table td.hl { color: var(--red); font-weight: 700; }
+.data-table td.hl2 { color: var(--green); font-weight: 700; }
+.data-table tr:nth-child(even) td { background: rgba(204,0,34,0.02); }
+
+/* =============================================
+   ALERT BOX
+============================================= */
+.alert-box {
+  border: 1px solid rgba(255,45,120,0.4);
+  background: rgba(255,45,120,0.04);
+  padding: 8px 12px;
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-top: 3%;
+  position: relative; overflow: hidden;
+}
+.alert-box::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 2px;
+  background: var(--pink);
+}
+.alert-box .al-icon {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(10px,2vw,18px);
+  color: var(--pink); flex-shrink: 0; line-height: 1;
+}
+.alert-box .al-text {
+  font-size: clamp(6px,1.2vw,11px); font-weight: 300;
+  color: var(--dim); line-height: 1.5;
+}
+.alert-box .al-text strong { color: var(--white); }
+
+.alert-box.green { border-color: rgba(0,204,102,0.4); background: rgba(0,204,102,0.04); }
+.alert-box.green::before { background: var(--green); }
+.alert-box.green .al-icon { color: var(--green); }
+
+.alert-box.red { border-color: rgba(204,0,34,0.5); background: rgba(204,0,34,0.05); }
+.alert-box.red::before { background: var(--red); }
+.alert-box.red .al-icon { color: var(--red); }
+
+/* =============================================
+   COVER SLIDE (S1)
+============================================= */
+.s-cover { background: #050505; }
+.s-cover .glow-r {
+  position: absolute; top: -20%; right: -8%;
+  width: 60%; height: 130%;
+  background: radial-gradient(ellipse, rgba(204,0,34,0.22) 0%, transparent 65%);
+}
+.s-cover .glow-p {
+  position: absolute; bottom: -30%; left: -5%;
+  width: 40%; height: 80%;
+  background: radial-gradient(ellipse, rgba(255,45,120,0.10) 0%, transparent 65%);
+}
+.s-cover .line-accent {
+  position: absolute; bottom: 0; left: 36px; width: 40%; height: 2px;
+  background: linear-gradient(90deg, var(--red), var(--pink), transparent);
+}
+.s-cover .cover-content {
+  position: absolute; inset: 0; padding: 0 8% 0 9%;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.s-cover .class-badge {
+  font-family: 'Space Mono', monospace; font-size: clamp(5px,1vw,9px);
+  letter-spacing: 5px; color: var(--pink); text-transform: uppercase;
+  margin-bottom: 3%; display: flex; align-items: center; gap: 10px;
+}
+.s-cover .class-badge::before { content: ''; width: 20px; height: 1px; background: var(--pink); }
+.s-cover h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(22px,7.5vw,76px); line-height: 0.88; letter-spacing: 1px; color: var(--white);
+}
+.s-cover h1 .accent { color: var(--red); }
+.s-cover h1 .outline { -webkit-text-stroke: 1px rgba(240,240,240,0.22); color: transparent; }
+.s-cover .sub {
+  font-size: clamp(6px,1.4vw,13px); font-weight: 300;
+  color: var(--dim); margin-top: 4%; letter-spacing: 1px; max-width: 55%; line-height: 1.6;
+}
+.s-cover .tagline-row {
+  margin-top: 5%; display: flex; align-items: center; gap: 8px;
+}
+.s-cover .tagline-row span {
+  font-family: 'Space Mono', monospace; font-size: clamp(4px, 0.8vw, 8px);
+  letter-spacing: 3px; color: var(--dim2); text-transform: uppercase;
+}
+.s-cover .tagline-row span + span::before { content: '·'; margin-right: 8px; }
+
+/* BIG watermark letter */
+.s-cover .bg-letter {
+  position: absolute; right: 2%; top: 50%; transform: translateY(-50%);
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(120px,25vw,260px);
+  color: rgba(204,0,34,0.05); line-height: 1; letter-spacing: -10px;
+  pointer-events: none; user-select: none;
+}
+
+/* =============================================
+   DARK BG VARIANTS
+============================================= */
+.bg-dark  { background: #060606; }
+.bg-dark2 { background: #080808; }
+.bg-dark3 { background: #070707; }
+.bg-dark4 { background: #040404; }
+
+/* Glows */
+.glow-right {
+  position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+  background: radial-gradient(ellipse at right center, rgba(204,0,34,0.07) 0%, transparent 70%);
+}
+.glow-left {
+  position: absolute; top: 0; left: 36px; width: 40%; height: 100%;
+  background: radial-gradient(ellipse at left center, rgba(204,0,34,0.07) 0%, transparent 70%);
+}
+.center-glow {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 80%; height: 80%;
+  background: radial-gradient(ellipse, rgba(204,0,34,0.12) 0%, transparent 65%);
+}
+.accent-top {
+  position: absolute; top: 28px; left: 36px; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--red), rgba(255,45,120,0.3), transparent);
+}
+.accent-left {
+  position: absolute; left: 36px; top: 28px; bottom: 22px; width: 2px;
+  background: linear-gradient(to bottom, var(--red), var(--pink), transparent);
+}
+
+/* =============================================
+   CRAFTING / MINECRAFT CARDS
+============================================= */
+.craft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 3%; }
+.craft-card {
+  border: 1px solid rgba(204,0,34,0.2);
+  background: rgba(0,0,0,0.4);
+  padding: 8px 10px;
+  position: relative; overflow: hidden;
+}
+.craft-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--pink), transparent);
+}
+.craft-card .cc-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: clamp(10px,2vw,18px);
+  color: var(--white); letter-spacing: 2px; margin-bottom: 4px;
+}
+.craft-card .cc-title span { color: var(--red); }
+.craft-card .cc-res {
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px;
+}
+.craft-card .cc-r {
+  font-family: 'Space Mono', monospace; font-size: clamp(4px,0.8vw,8px);
+  letter-spacing: 1px; color: var(--dim2);
+  display: flex; align-items: center; gap: 5px;
+}
+.craft-card .cc-r::before {
+  content: '▸'; color: var(--red); font-size: 0.8em;
+}
+.craft-card .cc-pseudo {
+  margin-top: 4px; padding: 5px 7px;
+  background: rgba(0,0,0,0.5); border-left: 2px solid var(--red);
+  font-family: 'Space Mono', monospace; font-size: clamp(4px,0.85vw,8px); line-height: 1.7;
+}
+
+/* =============================================
+   CTA / CLOSE SLIDE
+============================================= */
+.s-close { background: #040404; }
+.s-close .close-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+}
+.s-close .close-content .eyebrow {
+  justify-content: center;
+}
+.s-close .close-content .eyebrow::before,
+.s-close .close-content .eyebrow::after {
+  content: ''; width: 24px; height: 1px; background: var(--pink);
+}
+.s-close .logo-watermark {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(10px,2.5vw,24px); letter-spacing: 7px;
+  color: rgba(240,240,240,0.06); margin-top: 4%;
+}
+.s-close .logo-watermark span { color: rgba(204,0,34,0.2); }
+.corner-tl {
+  position: absolute; top: 36px; left: 44px;
+  width: clamp(30px,6vw,60px); height: clamp(30px,6vw,60px);
+  border-top: 1px solid rgba(204,0,34,0.5); border-left: 1px solid rgba(204,0,34,0.5);
+}
+.corner-br {
+  position: absolute; bottom: 30px; right: 8px;
+  width: clamp(30px,6vw,60px); height: clamp(30px,6vw,60px);
+  border-bottom: 1px solid rgba(255,45,120,0.4); border-right: 1px solid rgba(255,45,120,0.4);
+}
+
+/* =============================================
+   FUTURISTIC CURSOR
+============================================= */
+*, *::before, *::after { cursor: none !important; }
+#fx-cursor { position: fixed; pointer-events: none; z-index: 99999; top: 0; left: 0; transform: translate(-50%,-50%); transition: opacity 0.2s; }
+#fx-cursor .cur-outer { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 28px; height: 28px; border: 1px solid rgba(204,0,34,0.7); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); animation: cur-spin 3s linear infinite; }
+#fx-cursor .cur-inner { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 5px; height: 5px; background: var(--red); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+#fx-cursor .cur-cross-h { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 18px; height: 1px; background: linear-gradient(90deg, transparent, rgba(204,0,34,0.5), transparent); }
+#fx-cursor .cur-cross-v { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 1px; height: 18px; background: linear-gradient(180deg, transparent, rgba(204,0,34,0.5), transparent); }
+#fx-cursor .cur-trail { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; border: 1px solid rgba(255,45,120,0.15); border-radius: 50%; transition: width 0.12s, height 0.12s; }
+#fx-cursor.clicking .cur-trail { width: 30px; height: 30px; }
+@keyframes cur-spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* =============================================
+   FULLSCREEN BUTTON
+============================================= */
+#fs-btn {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  background: rgba(0,0,0,0.85); border: 1px solid rgba(204,0,34,0.5);
+  color: var(--white); font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 2px; padding: 6px 12px;
+  text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+  transition: border-color 0.2s;
+}
+#fs-btn:hover { border-color: var(--red); background: rgba(204,0,34,0.1); }
+#fs-btn svg { width: 12px; height: 12px; }
+
+/* =============================================
+   TOP SLIDE INDEX NAV
+============================================= */
+#slide-index-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+  background: rgba(5,5,5,0.95); border-bottom: 1px solid rgba(204,0,34,0.25);
+  display: flex; align-items: center; padding: 0 20px; height: 36px;
+  backdrop-filter: blur(8px);
+  transform: translateY(-100%); transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+}
+#slide-index-nav.visible { transform: translateY(0); }
+#slide-index-nav .nav-logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 3px;
+  color: var(--white); margin-right: 20px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+#slide-index-nav .nav-logo .f-icon {
+  width: 12px; height: 12px; background: var(--red);
+  clip-path: polygon(0 0, 70% 0, 100% 50%, 70% 100%, 0 100%, 30% 50%);
+}
+#slide-index-nav .nav-logo span { color: var(--red); }
+#slide-index-nav .nav-items { display: flex; align-items: stretch; gap: 0; flex: 1; overflow-x: auto; }
+#slide-index-nav .nav-items::-webkit-scrollbar { display: none; }
+#slide-index-nav .nav-item {
+  display: flex; align-items: center; gap: 5px; padding: 0 10px; height: 36px;
+  font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(240,240,240,0.3);
+  border-right: 1px solid rgba(204,0,34,0.1); white-space: nowrap;
+  position: relative; transition: color 0.2s, background 0.2s;
+}
+#slide-index-nav .nav-item::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--red); transform: scaleX(0); transition: transform 0.2s;
+}
+#slide-index-nav .nav-item.active { color: var(--pink); background: rgba(204,0,34,0.08); }
+#slide-index-nav .nav-item.active::after { transform: scaleX(1); }
+#slide-index-nav .nav-item .n-num { font-size: 6px; color: rgba(204,0,34,0.5); }
+#slide-index-nav .nav-item.active .n-num { color: var(--red); }
+
+/* =============================================
+   PROGRESS HUD
+============================================= */
+#progress-hud {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+  display: flex; align-items: center; gap: 10px;
+}
+#progress-hud .prog-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--pink); text-transform: uppercase; text-shadow: 0 0 8px rgba(255,45,120,0.5); }
+#progress-hud .prog-pct { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--red); line-height: 1; min-width: 3ch; text-align: right; text-shadow: 0 0 12px rgba(204,0,34,0.6); }
+#progress-hud .prog-unit { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1px; color: rgba(204,0,34,0.6); align-self: flex-end; margin-bottom: 3px; }
+#progress-hud .prog-bar-wrap { width: 80px; height: 3px; background: rgba(240,240,240,0.06); position: relative; overflow: hidden; }
+#progress-hud .prog-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, var(--red), var(--pink)); transition: width 0.25s ease; box-shadow: 0 0 6px rgba(204,0,34,0.8); }
+
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="fx-cursor">
+  <div class="cur-trail"></div>
+  <div class="cur-cross-h"></div>
+  <div class="cur-cross-v"></div>
+  <div class="cur-outer"></div>
+  <div class="cur-inner"></div>
+</div>
+
+<!-- FULLSCREEN -->
+<button id="fs-btn" onclick="toggleFullscreen()">
+  <svg viewBox="0 0 14 14" fill="none"><path d="M1 4V1H4M10 1H13V4M13 10V13H10M4 13H1V10" stroke="#CC0022" stroke-width="1.2"/></svg>
+  <span id="fs-label">PANTALLA COMPLETA</span>
+</button>
+
+<!-- SLIDE INDEX NAV -->
+<nav id="slide-index-nav">
+  <div class="nav-logo"><div class="f-icon"></div>FUERTH<span>EX</span></div>
+  <div class="nav-items">
+    <div class="nav-item active" data-slide="0"><span class="n-num">01</span> PORTADA</div>
+    <div class="nav-item" data-slide="1"><span class="n-num">02</span> OBJETIVOS</div>
+    <div class="nav-item" data-slide="2"><span class="n-num">03</span> ESTRUCTURA</div>
+    <div class="nav-item" data-slide="3"><span class="n-num">04</span> INTRO</div>
+    <div class="nav-item" data-slide="4"><span class="n-num">05</span> SI</div>
+    <div class="nav-item" data-slide="5"><span class="n-num">06</span> SI/SINO</div>
+    <div class="nav-item" data-slide="6"><span class="n-num">07</span> SI/ELIF/SINO</div>
+    <div class="nav-item" data-slide="7"><span class="n-num">08</span> ERROR COMÚN</div>
+    <div class="nav-item" data-slide="8"><span class="n-num">09</span> OPERADORES</div>
+    <div class="nav-item" data-slide="9"><span class="n-num">10</span> LÓGICOS</div>
+    <div class="nav-item" data-slide="10"><span class="n-num">11</span> PRECEDENCIA</div>
+    <div class="nav-item" data-slide="11"><span class="n-num">12</span> CASOS LÍMITE</div>
+    <div class="nav-item" data-slide="12"><span class="n-num">13</span> PROBLEMA 1</div>
+    <div class="nav-item" data-slide="13"><span class="n-num">14</span> PROBLEMA 2</div>
+    <div class="nav-item" data-slide="14"><span class="n-num">15</span> PROBLEMA 3</div>
+    <div class="nav-item" data-slide="15"><span class="n-num">16</span> MINECRAFT</div>
+    <div class="nav-item" data-slide="16"><span class="n-num">17</span> RETO FINAL</div>
+    <div class="nav-item" data-slide="17"><span class="n-num">18</span> CIERRE</div>
+  </div>
+</nav>
+
+<!-- PROGRESS HUD -->
+<div id="progress-hud">
+  <div class="prog-label">AVANCE</div>
+  <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="prog-pct" id="prog-pct">0</div>
+  <div class="prog-unit">%</div>
+</div>
+
+<div class="page-wrap">
+
+<!-- ================================================================
+     SLIDE 01 — PORTADA
+================================================================ -->
+<div class="section-label">01 &mdash; Portada</div>
+<div class="slide s-cover">
+  <div class="fx-grid"></div><div class="fx-scan"></div><div class="fx-noise"></div>
+  <div class="glow-r"></div><div class="glow-p"></div>
+  <div class="bg-letter">SI</div>
+  <div class="line-accent"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU · PROGRAMACIÓN</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 01</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">01</div><div class="slide-num-sub">CLASE</div>
+    <div class="side-dots"><span class="active"></span><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bl"></div><div class="hud-br"></div>
+  <div class="cover-content">
+    <div class="class-badge">Clase S1 · Programación Competitiva</div>
+    <h1>ESTRUCTURAS<br><span class="accent">DE DECISIÓN</span><br><span class="outline">Y LÓGICA</span></h1>
+    <div class="sub">Pseudocódigo · Operadores lógicos · Condiciones complejas · Casos límite</div>
+    <div class="tagline-row">
+      <span>FUERTHEX EDU</span><span>S1 · 2 HRS</span><span>NIVEL COMPETITIVO</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 02 — OBJETIVOS
+================================================================ -->
+<div class="section-label">02 &mdash; Objetivos de la clase</div>
+<div class="slide bg-dark2">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="accent-top"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 02</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">02</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span class="active"></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">02 / 18</div><div class="tag-right">// OBJETIVOS</div>
+  </div>
+  <div class="sc pad-top">
+    <div class="tag">Al finalizar esta clase</div>
+    <h2>LOS ESTUDIANTES<br><span>PODRÁN...</span></h2>
+    <div class="two-col" style="margin-top:2%">
+      <div class="col-l">
+        <div class="bullet-list">
+          <div class="bullet-item"><div class="bi-dot"></div><span><strong>Resolver</strong> problemas usando decisiones complejas</span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span><strong>Entender</strong> la precedencia lógica</span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span><strong>Combinar</strong> múltiples condiciones correctamente</span></div>
+        </div>
+      </div>
+      <div class="col-r">
+        <div class="bullet-list">
+          <div class="bullet-item"><div class="bi-dot green"></div><span><strong>Evitar</strong> errores comunes de competencia</span></div>
+          <div class="bullet-item"><div class="bi-dot green"></div><span><strong>Analizar</strong> casos límite</span></div>
+          <div class="bullet-item"><div class="bi-dot green"></div><span><strong>Pensar</strong> en validaciones como un competidor</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="alert-box green" style="margin-top:4%">
+      <div class="al-icon">!</div>
+      <div class="al-text"><strong>Nota:</strong> En esta clase usaremos <strong>pseudocódigo</strong>, no código real todavía. Lo importante es aprender a <strong>pensar la lógica</strong>.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 03 — ESTRUCTURA DE LA CLASE
+================================================================ -->
+<div class="section-label">03 &mdash; Estructura de la clase</div>
+<div class="slide bg-dark3">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div>
+  <div class="accent-left"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 03</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">03</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span class="active"></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">03 / 18</div><div class="tag-right">// AGENDA</div>
+  </div>
+  <div class="sc pad-top" style="left:38px">
+    <div class="tag">Agenda · Plan de clase</div>
+    <h2>ESTRUCTURA<br><span>DE LA CLASE</span></h2>
+    <table class="data-table" style="margin-top:2%">
+      <thead>
+        <tr><th>#</th><th>Sección</th><th>Tiempo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="hl">01</td><td>Introducción y mentalidad competitiva</td><td class="hl2">10 min</td></tr>
+        <tr><td class="hl">02</td><td>Teoría de estructuras de decisión</td><td class="hl2">25 min</td></tr>
+        <tr><td class="hl">03</td><td>Operadores lógicos complejos</td><td class="hl2">25 min</td></tr>
+        <tr><td class="hl">04</td><td>Casos límite y errores comunes</td><td class="hl2">15 min</td></tr>
+        <tr><td class="hl">05</td><td>Problemas guiados</td><td class="hl2">25 min</td></tr>
+        <tr><td class="hl">06</td><td>Dinámica Minecraft competitiva</td><td class="hl2">15 min</td></tr>
+        <tr><td class="hl">07</td><td>Mini reto final</td><td class="hl2">5 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 04 — INTRODUCCIÓN: QUÉ ES UNA ESTRUCTURA DE DECISIÓN
+================================================================ -->
+<div class="section-label">04 &mdash; Parte 1 · Introducción</div>
+<div class="slide bg-dark">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 04</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">04</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span class="active"></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">04 / 18</div><div class="tag-right">// PARTE 1</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:center;gap:6%">
+      <div class="col-45">
+        <div class="tag">Introducción · 10 min</div>
+        <h2>¿QUÉ HACE UNA<br><span>COMPUTADORA?</span></h2>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>NO piensa</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>NO interpreta</span></div>
+          <div class="bullet-item"><div class="bi-dot green"></div><span><strong>SOLO evalúa</strong> condiciones verdaderas o falsas</span></div>
+        </div>
+        <div class="alert-box" style="margin-top:4%">
+          <div class="al-icon">!</div>
+          <div class="al-text">El <strong>70% de errores</strong> en competencia son condiciones mal hechas, no algoritmos difíciles.</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>// Ejemplo · Minecraft</div>
+          <div class="pb-body">
+            <span style="color:var(--dim2);font-size:0.85em">// ¿El jugador puede construir un pico?</span><br>
+            <br>
+            <span class="pk-cm">// ❌ Incompleto</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-var">madera</span>) {<br>
+            <span class="pk-ind pk-cm">// solo verifica madera, olvida piedra</span>
+            }<br>
+            <br>
+            <span class="pk-cm">// ✅ Correcto</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-var">madera</span> <span class="pk-op">Y</span> <span class="pk-var">piedra</span>) {<br>
+            <span class="pk-ind pk-act">construir("pico")</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 05 — ESTRUCTURA SI
+================================================================ -->
+<div class="section-label">05 &mdash; Parte 2 · Estructura SI</div>
+<div class="slide bg-dark2">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div>
+  <div class="accent-top"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 05</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">05</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span></span><span class="active"></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">05 / 18</div><div class="tag-right">// DECISIÓN SIMPLE</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:center;gap:6%">
+      <div class="col-45">
+        <div class="tag">Estructura básica · Decisión simple</div>
+        <h2>ESTRUCTURA<br><span>SI</span></h2>
+        <div class="body" style="margin-top:3%">Se ejecuta <strong>solo si</strong> la condición es verdadera. Si es falsa, no pasa nada y el programa continúa.</div>
+        <div class="bullet-list" style="margin-top:4%">
+          <div class="bullet-item"><div class="bi-dot"></div><span>Evalúa la condición</span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span>Si es <strong>verdadera</strong> → ejecuta el bloque</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Si es <strong>falsa</strong> → no hace nada</span></div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Pseudocódigo · SI simple</div>
+          <div class="pb-body">
+            <span class="pk-cm">// Sintaxis</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-cond">condicion</span>) {<br>
+            <span class="pk-ind pk-act">ejecucion</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// Ejemplo</span><br>
+            <span class="pk-var">nivel</span> = <span class="pk-val">15</span><br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">nivel</span> &gt;= <span class="pk-val">10</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Puedes entrar al dungeon")</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 06 — SI / SINO
+================================================================ -->
+<div class="section-label">06 &mdash; Parte 2 · SI — SINO</div>
+<div class="slide bg-dark">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 06</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">06</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span class="active"></span><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">06 / 18</div><div class="tag-right">// DOS CAMINOS</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:center;gap:6%">
+      <div class="col-45">
+        <div class="tag">Decisión con alternativa</div>
+        <h2>SI —<br><span>SINO</span></h2>
+        <div class="body" style="margin-top:3%">Ahora tenemos <strong>dos caminos</strong>. Si la condición es verdadera va por uno, si es falsa va por el otro. Siempre entra por uno de los dos.</div>
+        <div class="bullet-list" style="margin-top:4%">
+          <div class="bullet-item"><div class="bi-dot green"></div><span>Verdadero → ejecuta el bloque del <strong>SI</strong></span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Falso → ejecuta el bloque del <strong>SINO</strong></span></div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Pseudocódigo · SI / SINO</div>
+          <div class="pb-body">
+            <span class="pk-var">edad</span> = <span class="pk-val">17</span><br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">edad</span> &gt;= <span class="pk-val">18</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Mayor de edad")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("Menor de edad")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// edad = 17 → entra al SINO</span><br>
+            <span class="pk-cm">// Resultado: "Menor de edad"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 07 — SI / SINO SI / SINO
+================================================================ -->
+<div class="section-label">07 &mdash; Parte 2 · SI — SINO SI — SINO</div>
+<div class="slide bg-dark3">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div>
+  <div class="accent-left"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 07</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">07</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span class="active"></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">07 / 18</div><div class="tag-right">// MÚLTIPLES CAMINOS</div>
+  </div>
+  <div class="sc" style="left:38px">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">Múltiples condiciones</div>
+        <h2>SI — SINO SI<br><span>— SINO</span></h2>
+        <div class="body" style="margin-top:3%">El programa evalúa <strong>de arriba hacia abajo</strong> y entra <strong>solo en la primera condición verdadera</strong>. Esto es clave en competencia.</div>
+        <div class="alert-box" style="margin-top:4%">
+          <div class="al-icon">▲</div>
+          <div class="al-text">Una vez que entra en un bloque, <strong>no evalúa los demás</strong>, aunque también sean verdaderos.</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Pseudocódigo · SI / SINO SI / SINO</div>
+          <div class="pb-body">
+            <span class="pk-var">nota</span> = <span class="pk-val">75</span><br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">90</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Excelente")</span><br>
+            }<span class="pk-kw"> sino si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">70</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Aprobado")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("Reprobado")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// nota = 75 → entra al "sino si"</span><br>
+            <span class="pk-cm">// Resultado: "Aprobado"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 08 — ERROR COMÚN: ORDEN DE CONDICIONES
+================================================================ -->
+<div class="section-label">08 &mdash; Error común · Orden de condiciones</div>
+<div class="slide bg-dark">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="center-glow"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 08</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">08</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span class="active"></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">08 / 18</div><div class="tag-right">// ERROR CRÍTICO</div>
+  </div>
+  <div class="sc">
+    <div class="tag">¡Atención! Error frecuente en competencia</div>
+    <h2>EL ORDEN DE<br><span>LAS CONDICIONES IMPORTA</span></h2>
+    <div class="two-col" style="margin-top:3%;gap:5%">
+      <div class="col-l">
+        <div class="alert-box red" style="margin-bottom:3%">
+          <div class="al-icon">✗</div>
+          <div class="al-text"><strong>INCORRECTO</strong> — el 90 jamás entra</div>
+        </div>
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>❌ Orden incorrecto</div>
+          <div class="pb-body">
+            <span class="pk-kw">si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">70</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Aprobado")</span><br>
+            }<span class="pk-kw"> sino si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">90</span>) {<br>
+            <span class="pk-ind pk-cm">// Esta línea NUNCA se ejecuta</span><br>
+            <span class="pk-ind pk-act">mostrar("Excelente")</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-r">
+        <div class="alert-box green" style="margin-bottom:3%">
+          <div class="al-icon">✓</div>
+          <div class="al-text"><strong>CORRECTO</strong> — la más restrictiva va primero</div>
+        </div>
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>✅ Orden correcto</div>
+          <div class="pb-body">
+            <span class="pk-kw">si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">90</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Excelente")</span><br>
+            }<span class="pk-kw"> sino si</span> (<span class="pk-var">nota</span> &gt;= <span class="pk-val">70</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Aprobado")</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 09 — OPERADORES RELACIONALES
+================================================================ -->
+<div class="section-label">09 &mdash; Parte 3 · Operadores relacionales</div>
+<div class="slide bg-dark2">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="accent-top"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 09</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">09</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span class="active"></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">09 / 18</div><div class="tag-right">// RELACIONALES</div>
+  </div>
+  <div class="sc pad-top">
+    <div class="tag">Parte 3 · 5 min</div>
+    <h2>OPERADORES<br><span>RELACIONALES</span></h2>
+    <div class="two-col" style="margin-top:2%;gap:6%">
+      <div class="col-l">
+        <table class="data-table">
+          <thead><tr><th>Símbolo</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+          <tbody>
+            <tr><td class="hl">==</td><td>igual a</td><td class="hl2">x == 5</td></tr>
+            <tr><td class="hl">!=</td><td>diferente a</td><td class="hl2">x != 0</td></tr>
+            <tr><td class="hl">&gt;</td><td>mayor que</td><td class="hl2">nivel &gt; 10</td></tr>
+            <tr><td class="hl">&lt;</td><td>menor que</td><td class="hl2">vida &lt; 50</td></tr>
+            <tr><td class="hl">&gt;=</td><td>mayor o igual</td><td class="hl2">edad &gt;= 18</td></tr>
+            <tr><td class="hl">&lt;=</td><td>menor o igual</td><td class="hl2">n &lt;= 100</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-r">
+        <div class="alert-box red">
+          <div class="al-icon">✗</div>
+          <div class="al-text">
+            <strong>ERROR CRÍTICO en competencia:</strong><br>
+            Usar <span style="color:var(--red);font-family:'Space Mono',monospace">=</span> en lugar de <span style="color:var(--green);font-family:'Space Mono',monospace">==</span><br><br>
+            <span style="font-family:'Space Mono',monospace;color:var(--dim2)">❌ si (x = 5)</span><br>
+            <span style="font-family:'Space Mono',monospace;color:var(--green)">✅ si (x == 5)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 10 — OPERADORES LÓGICOS
+================================================================ -->
+<div class="section-label">10 &mdash; Parte 4 · Operadores lógicos</div>
+<div class="slide bg-dark">
+  <div class="fx-grid"></div><div class="fx-noise"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 10</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">10</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span></span><span class="active"></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">10 / 18</div><div class="tag-right">// PARTE 4 · LÓGICOS</div>
+  </div>
+  <div class="sc pad-top">
+    <div class="tag">Parte 4 · Lógica combinada · 25 min</div>
+    <h2>OPERADORES<br><span>LÓGICOS</span></h2>
+    <div class="info-cards" style="grid-template-columns:repeat(3,1fr)">
+      <div class="info-card">
+        <div class="ic-title" style="color:var(--red)">Y &nbsp;(AND)</div>
+        <div class="ic-text" style="margin-bottom:6px">Todas las condiciones deben cumplirse.</div>
+        <div class="pseudo-block" style="font-size:clamp(4px,0.9vw,8px)">
+          <div class="pb-body" style="padding:5px 8px">
+            <span class="pk-kw">si</span> (<span class="pk-var">energia</span> &gt;= <span class="pk-val">50</span><br>
+            &nbsp;&nbsp;&nbsp;<span class="pk-op">Y</span> <span class="pk-var">espada</span> == <span class="pk-val">verdadero</span>) {<br>
+            <span class="pk-ind pk-act">atacar()</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="ic-title" style="color:var(--pink)">O &nbsp;(OR)</div>
+        <div class="ic-text" style="margin-bottom:6px">Al menos una debe cumplirse.</div>
+        <div class="pseudo-block" style="font-size:clamp(4px,0.9vw,8px)">
+          <div class="pb-body" style="padding:5px 8px">
+            <span class="pk-kw">si</span> (<span class="pk-var">llave_oro</span><br>
+            &nbsp;&nbsp;&nbsp;<span class="pk-op">O</span> <span class="pk-var">llave_maestra</span>) {<br>
+            <span class="pk-ind pk-act">abrir_puerta()</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="ic-title" style="color:var(--blue)">NO (NOT)</div>
+        <div class="ic-text" style="margin-bottom:6px">Invierte la condición.</div>
+        <div class="pseudo-block" style="font-size:clamp(4px,0.9vw,8px)">
+          <div class="pb-body" style="padding:5px 8px">
+            <span class="pk-kw">si</span> (<span class="pk-op">NO</span> <span class="pk-var">muerto</span>) {<br>
+            <span class="pk-ind pk-act">seguir_jugando()</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 11 — PRECEDENCIA LÓGICA
+================================================================ -->
+<div class="section-label">11 &mdash; Precedencia lógica</div>
+<div class="slide bg-dark3">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="accent-left"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 11</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">11</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span class="active"></span><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">11 / 18</div><div class="tag-right">// PRECEDENCIA</div>
+  </div>
+  <div class="sc" style="left:38px">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">¡Muy importante!</div>
+        <h2>PRECEDENCIA<br><span>LÓGICA</span></h2>
+        <div class="body" style="margin-top:3%">Cuando combinas operadores, el orden de evaluación importa. Se evalúan en este orden:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot" style="background:var(--blue)"></div><span><strong style="color:var(--blue)">1°</strong> · NO</span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span><strong style="color:var(--red)">2°</strong> · Y</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span><strong style="color:var(--pink)">3°</strong> · O</span></div>
+        </div>
+        <div class="alert-box green" style="margin-top:4%">
+          <div class="al-icon">★</div>
+          <div class="al-text"><strong>Consejo profesional:</strong> Usa paréntesis SIEMPRE para evitar errores. No dependas de la precedencia.</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Precedencia · Ejemplo</div>
+          <div class="pb-body">
+            <span class="pk-cm">// Sin paréntesis — peligroso</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-var">a</span> <span class="pk-op">O</span> <span class="pk-var">b</span> <span class="pk-op">Y</span> <span class="pk-var">c</span>) {…}<br>
+            <br>
+            <span class="pk-cm">// Se evalúa como:</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-var">a</span> <span class="pk-op">O</span> (<span class="pk-var">b</span> <span class="pk-op">Y</span> <span class="pk-var">c</span>)) {…}<br>
+            <br>
+            <span class="pk-cm">// ¿Querías esto? Quizás no.</span><br>
+            <br>
+            <span class="pk-cm">// ✅ Con paréntesis — claro y seguro</span><br>
+            <span class="pk-kw">si</span> ((<span class="pk-var">a</span> <span class="pk-op">O</span> <span class="pk-var">b</span>) <span class="pk-op">Y</span> <span class="pk-var">c</span>) {<br>
+            <span class="pk-ind pk-act">ejecucion</span><br>
+            }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 12 — CASOS LÍMITE
+================================================================ -->
+<div class="section-label">12 &mdash; Parte 5 · Casos límite</div>
+<div class="slide bg-dark2">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 12</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">12</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span class="active"></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">12 / 18</div><div class="tag-right">// CASOS LÍMITE</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-l">
+        <div class="tag">Parte 5 · 15 min</div>
+        <h2>CASOS<br><span>LÍMITE</span></h2>
+        <div class="body" style="margin-top:3%">Valores extremos que pueden romper la lógica:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>0</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Negativos</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Valores iguales al límite</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Máximos</span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span>Vacíos / no definidos</span></div>
+        </div>
+        <div class="alert-box" style="margin-top:3%">
+          <div class="al-icon">★</div>
+          <div class="al-text">Los mejores competidores <strong>no piensan en el caso normal</strong>. Piensan en <strong>cómo romper el programa</strong>.</div>
+        </div>
+      </div>
+      <div class="col-r">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>¿Qué pasa con estos valores?</div>
+          <div class="pb-body">
+            <span class="pk-kw">si</span> (<span class="pk-var">x</span> &gt; <span class="pk-val">0</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Positivo")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// Preguntas para el estudiante:</span><br>
+            <span class="pk-cm">// ¿Qué pasa si x = 0 ?</span><br>
+            <span style="color:var(--pink)">→</span> <span class="pk-cm">No entra. El 0 no es mayor a 0.</span><br>
+            <br>
+            <span class="pk-cm">// ¿Qué pasa si x = -1 ?</span><br>
+            <span style="color:var(--pink)">→</span> <span class="pk-cm">No entra. -1 no es mayor a 0.</span><br>
+            <br>
+            <span class="pk-cm">// ¿Y si quieres incluir el 0?</span><br>
+            <span class="pk-kw">si</span> (<span class="pk-var">x</span> &gt;= <span class="pk-val">0</span>) { … }<span class="pk-kw"> fin si</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 13 — PROBLEMA 1: ACCESO AL DUNGEON
+================================================================ -->
+<div class="section-label">13 &mdash; Parte 6 · Problema 1 (fácil)</div>
+<div class="slide bg-dark">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div>
+  <div class="accent-top"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 13</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">13</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span class="active"></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">13 / 18</div><div class="tag-right">// PROBLEMA 1</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">Problema guiado · Nivel fácil</div>
+        <h2>ACCESO AL<br><span>DUNGEON</span></h2>
+        <div class="body" style="margin-top:3%">Un jugador puede entrar al dungeon si:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot"></div><span>tiene <strong>nivel &gt;= 10</strong></span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span><strong>Y</strong> tiene una llave</span></div>
+        </div>
+        <div class="alert-box green" style="margin-top:4%">
+          <div class="al-icon">?</div>
+          <div class="al-text">¿Qué pasa si tiene nivel 10 pero no tiene llave? ¿Y si tiene llave pero su nivel es 8?</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Solución · Pseudocódigo</div>
+          <div class="pb-body">
+            <span class="pk-var">nivel</span> ← leer()<br>
+            <span class="pk-var">llave</span> ← leer()<br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">nivel</span> &gt;= <span class="pk-val">10</span> <span class="pk-op">Y</span> <span class="pk-var">llave</span> == <span class="pk-val">"si"</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Puede entrar")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("No puede entrar")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// Casos a probar:</span><br>
+            <span class="pk-cm">// nivel=10, llave=si → ✅ entra</span><br>
+            <span class="pk-cm">// nivel=10, llave=no → ❌ no entra</span><br>
+            <span class="pk-cm">// nivel=8,  llave=si → ❌ no entra</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 14 — PROBLEMA 2: TIENDA ESPECIAL
+================================================================ -->
+<div class="section-label">14 &mdash; Parte 6 · Problema 2 (medio)</div>
+<div class="slide bg-dark3">
+  <div class="fx-grid"></div><div class="fx-noise"></div><div class="glow-right"></div>
+  <div class="accent-left"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 14</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">14</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span class="active"></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">14 / 18</div><div class="tag-right">// PROBLEMA 2</div>
+  </div>
+  <div class="sc" style="left:38px">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">Problema guiado · Nivel medio</div>
+        <h2>TIENDA<br><span>ESPECIAL</span></h2>
+        <div class="body" style="margin-top:3%">Hay descuento si:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot"></div><span>la compra supera <strong>100</strong></span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span><strong>O</strong> tiene membresía premium</span></div>
+        </div>
+        <div class="alert-box" style="margin-top:4%">
+          <div class="al-icon">?</div>
+          <div class="al-text">Aquí usamos <strong>O</strong>. Basta con que se cumpla una condición para tener descuento. ¿Qué diferencia haría usar <strong>Y</strong> en vez de <strong>O</strong>?</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Solución · Pseudocódigo</div>
+          <div class="pb-body">
+            <span class="pk-var">compra</span> ← leer()<br>
+            <span class="pk-var">premium</span> ← leer()<br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">compra</span> &gt; <span class="pk-val">100</span> <span class="pk-op">O</span> <span class="pk-var">premium</span> == <span class="pk-val">"si"</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Tienes descuento")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("Sin descuento")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// Casos:</span><br>
+            <span class="pk-cm">// compra=150, prem=no → ✅ descuento</span><br>
+            <span class="pk-cm">// compra=50,  prem=si → ✅ descuento</span><br>
+            <span class="pk-cm">// compra=50,  prem=no → ❌ sin descuento</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 15 — PROBLEMA 3: NÚMERO ESPECIAL
+================================================================ -->
+<div class="section-label">15 &mdash; Parte 6 · Problema 3 (competitivo)</div>
+<div class="slide bg-dark">
+  <div class="fx-grid-fine"></div><div class="fx-noise"></div>
+  <div class="glow-right"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 15</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">15</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span></span><span></span><span></span><span class="active"></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">15 / 18</div><div class="tag-right">// PROBLEMA 3</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">Problema real competitivo · Nivel avanzado</div>
+        <h2>NÚMERO<br><span>ESPECIAL</span></h2>
+        <div class="body" style="margin-top:3%">Un número es <strong>especial</strong> si cumple las 3 condiciones a la vez:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot"></div><span>es <strong>positivo</strong></span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span>es <strong>par</strong> (divisible entre 2)</span></div>
+          <div class="bullet-item"><div class="bi-dot"></div><span>es <strong>múltiplo de 3</strong></span></div>
+        </div>
+        <div class="alert-box" style="margin-top:3%">
+          <div class="al-icon">%</div>
+          <div class="al-text">El operador <strong>MOD</strong> (residuo) nos dice si un número es divisible. Si <strong>n MOD 2 == 0</strong> → el número es par.</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Solución · Pseudocódigo</div>
+          <div class="pb-body">
+            <span class="pk-var">n</span> ← leer()<br>
+            <br>
+            <span class="pk-kw">si</span> (<span class="pk-var">n</span> &gt; <span class="pk-val">0</span><br>
+            &nbsp;&nbsp;&nbsp;<span class="pk-op">Y</span> <span class="pk-var">n</span> <span class="pk-kw">MOD</span> <span class="pk-val">2</span> == <span class="pk-val">0</span><br>
+            &nbsp;&nbsp;&nbsp;<span class="pk-op">Y</span> <span class="pk-var">n</span> <span class="pk-kw">MOD</span> <span class="pk-val">3</span> == <span class="pk-val">0</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("Especial")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("Normal")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// n=6  → positivo, par, mult3 → ✅</span><br>
+            <span class="pk-cm">// n=4  → positivo, par, NO mult3 → ❌</span><br>
+            <span class="pk-cm">// n=0  → NO positivo → ❌</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 16 — DINÁMICA MINECRAFT
+================================================================ -->
+<div class="section-label">16 &mdash; Parte 7 · Dinámica Minecraft</div>
+<div class="slide bg-dark2">
+  <div class="fx-grid"></div><div class="fx-noise"></div>
+  <div style="position:absolute;top:0;right:0;bottom:0;width:45%;background:radial-gradient(ellipse at right,rgba(0,204,102,0.06) 0%,transparent 70%)"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 16</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">16</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span class="active"></span><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">16 / 18</div><div class="tag-right">// CRAFTING</div>
+  </div>
+  <div class="sc pad-top">
+    <div class="tag">Parte 7 · Dinámica grupal · 15 min</div>
+    <h2>CRAFTING<br><span>COMPETITIVO</span></h2>
+    <div class="craft-grid">
+      <div class="craft-card">
+        <div class="cc-title">PICO DE <span>PIEDRA</span></div>
+        <div class="cc-res">
+          <div class="cc-r">3 piedras</div>
+          <div class="cc-r">2 maderas</div>
+        </div>
+        <div class="cc-pseudo">
+          <span class="pk-kw">si</span> (<span class="pk-var">piedra</span> &gt;= <span class="pk-val">3</span> <span class="pk-op">Y</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="pk-var">madera</span> &gt;= <span class="pk-val">2</span>) {<br>
+          <span class="pk-ind pk-act">crear("pico")</span><br>
+          }<span class="pk-kw"> fin si</span>
+        </div>
+      </div>
+      <div class="craft-card">
+        <div class="cc-title">ESPADA DE <span>HIERRO</span></div>
+        <div class="cc-res">
+          <div class="cc-r">2 hierros</div>
+          <div class="cc-r">1 madera</div>
+        </div>
+        <div class="cc-pseudo">
+          <span class="pk-kw">si</span> (<span class="pk-var">hierro</span> &gt;= <span class="pk-val">2</span> <span class="pk-op">Y</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="pk-var">madera</span> &gt;= <span class="pk-val">1</span>) {<br>
+          <span class="pk-ind pk-act">crear("espada")</span><br>
+          }<span class="pk-kw"> fin si</span>
+        </div>
+      </div>
+      <div class="craft-card">
+        <div class="cc-title">NIVEL <span>AVANZADO</span></div>
+        <div class="cc-res">
+          <div class="cc-r">Recursos alternativos</div>
+          <div class="cc-r">Prioridad de crafting</div>
+        </div>
+        <div class="cc-pseudo">
+          <span class="pk-kw">si</span> ((<span class="pk-var">hierro</span> &gt;= <span class="pk-val">2</span> <span class="pk-op">Y</span> <span class="pk-var">madera</span> &gt;= <span class="pk-val">1</span>)<br>
+          &nbsp;&nbsp;&nbsp;<span class="pk-op">O</span> <span class="pk-var">diamante</span> &gt;= <span class="pk-val">1</span>) {<br>
+          <span class="pk-ind pk-act">crear("espada")</span><br>
+          }<span class="pk-kw"> fin si</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 17 — MINI RETO FINAL
+================================================================ -->
+<div class="section-label">17 &mdash; Parte 8 · Mini reto final</div>
+<div class="slide bg-dark3">
+  <div class="fx-grid"></div><div class="fx-scan"></div><div class="fx-noise"></div>
+  <div class="center-glow"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 17</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">17</div><div class="slide-num-sub">SLIDE</div>
+    <div class="side-dots"><span></span><span class="active"></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">17 / 18</div><div class="tag-right">// RETO FINAL</div>
+  </div>
+  <div class="sc">
+    <div class="two-col" style="align-items:flex-start;gap:5%">
+      <div class="col-45">
+        <div class="tag">Parte 8 · 5 minutos</div>
+        <h2>MINI RETO<br><span>FINAL</span></h2>
+        <div class="body" style="margin-top:3%">Un jugador <strong>sobrevive</strong> si:</div>
+        <div class="bullet-list" style="margin-top:3%">
+          <div class="bullet-item"><div class="bi-dot"></div><span>tiene <strong>comida Y agua</strong></span></div>
+          <div class="bullet-item"><div class="bi-dot pink"></div><span><strong>O</strong> tiene un kit de supervivencia</span></div>
+        </div>
+        <div class="alert-box green" style="margin-top:4%">
+          <div class="al-icon">!</div>
+          <div class="al-text">Presten atención a los paréntesis. <strong>(comida Y agua)</strong> se evalúa primero, luego el <strong>O kit</strong>.</div>
+        </div>
+      </div>
+      <div class="col-55">
+        <div class="pseudo-block">
+          <div class="pb-bar"><div class="pb-dot"></div>Solución esperada</div>
+          <div class="pb-body">
+            <span class="pk-var">comida</span> ← <span class="pk-val">verdadero</span><br>
+            <span class="pk-var">agua</span>   ← <span class="pk-val">falso</span><br>
+            <span class="pk-var">kit</span>    ← <span class="pk-val">verdadero</span><br>
+            <br>
+            <span class="pk-kw">si</span> ((<span class="pk-var">comida</span> <span class="pk-op">Y</span> <span class="pk-var">agua</span>) <span class="pk-op">O</span> <span class="pk-var">kit</span>) {<br>
+            <span class="pk-ind pk-act">mostrar("¡Sobrevive!")</span><br>
+            }<span class="pk-kw"> sino</span> {<br>
+            <span class="pk-ind pk-act">mostrar("Muere...")</span><br>
+            }<span class="pk-kw"> fin si</span><br>
+            <br>
+            <span class="pk-cm">// comida=V, agua=F, kit=V</span><br>
+            <span class="pk-cm">// (V Y F) O V → F O V → ✅ Sobrevive</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SLIDE 18 — CIERRE
+================================================================ -->
+<div class="section-label">18 &mdash; Cierre · Mensaje final</div>
+<div class="slide s-close">
+  <div class="fx-grid"></div><div class="fx-scan"></div><div class="fx-noise"></div>
+  <div class="center-glow"></div>
+  <div class="corner-tl"></div><div class="corner-br"></div>
+  <div style="position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--red),var(--pink),transparent)"></div>
+  <div class="hud-topbar">
+    <div class="logo"><div class="f-icon"></div><div>FUERTH<span>EX</span><div class="corp">EDU</div></div></div>
+    <div class="nav-dots"><span>ANALIZAR</span><span>DECIDIR</span><span>EJECUTAR</span></div>
+    <div class="slide-num">SLIDE 18</div><div class="resize-ico"></div>
+  </div>
+  <div class="hud-sidenav">
+    <div class="slide-num-big">18</div><div class="slide-num-sub">FIN</div>
+    <div class="side-dots"><span></span><span></span><span></span><span class="active"></span><span></span></div>
+  </div>
+  <div class="hud-bottom">
+    <div class="bar-deco"></div><div class="brand">FUERTH<span>EX</span></div>
+    <div class="page-info">18 / 18</div><div class="tag-right">// THINK. CODE. WIN.</div>
+  </div>
+  <div class="close-content">
+    <div class="eyebrow" style="justify-content:center">Cierre de clase · S1</div>
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,7vw,72px);line-height:0.9;letter-spacing:1px;text-align:center;margin-bottom:2%">
+      PROGRAMAR ES<br>
+      <span style="color:var(--red)">PENSAR</span><br>
+      <span style="-webkit-text-stroke:1px rgba(240,240,240,0.22);color:transparent">NO MEMORIZAR</span>
+    </h1>
+    <div style="font-family:'Space Mono',monospace;font-size:clamp(5px,1.1vw,10px);letter-spacing:3px;color:var(--dim2);text-align:center;max-width:55%;line-height:1.8;margin:0 auto">
+      Un competidor pierde más por un &gt;= mal puesto,<br>
+      un Y olvidado, o un paréntesis equivocado...<br>
+      que por no saber el algoritmo.
+    </div>
+    <div class="logo-watermark" style="margin-top:3%;text-align:center">FUERTH<span>EX</span> EDU</div>
+  </div>
+</div>
+
+
+</div><!-- end page-wrap -->
+
+<script>
+// Cursor
+const cursor = document.getElementById('fx-cursor');
+let mouseX=-200,mouseY=-200,curX=-200,curY=-200;
+document.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
+document.addEventListener('mousedown',()=>cursor.classList.add('clicking'));
+document.addEventListener('mouseup',()=>cursor.classList.remove('clicking'));
+document.addEventListener('mouseleave',()=>{cursor.style.opacity='0';});
+document.addEventListener('mouseenter',()=>{cursor.style.opacity='1';});
+function animateCursor(){curX+=(mouseX-curX)*0.18;curY+=(mouseY-curY)*0.18;cursor.style.left=curX+'px';cursor.style.top=curY+'px';requestAnimationFrame(animateCursor);}
+animateCursor();
+
+// Fullscreen
+function toggleFullscreen(){
+  if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(()=>{});}
+  else{document.exitFullscreen();}
+}
+document.addEventListener('fullscreenchange',()=>{
+  document.getElementById('fs-label').textContent=document.fullscreenElement?'SALIR':'PANTALLA COMPLETA';
+});
+
+// Nav + progress
+const slides=Array.from(document.querySelectorAll('.slide'));
+const navItems=Array.from(document.querySelectorAll('#slide-index-nav .nav-item'));
+const nav=document.getElementById('slide-index-nav');
+const progFill=document.getElementById('prog-fill');
+const progPct=document.getElementById('prog-pct');
+function updateAll(){
+  const scrollY=window.scrollY,winH=window.innerHeight,docH=document.documentElement.scrollHeight-winH;
+  nav.classList.toggle('visible',scrollY>30);
+  let activeIdx=0,bestVis=-1;
+  slides.forEach((slide,i)=>{const rect=slide.getBoundingClientRect();const visible=Math.min(rect.bottom,winH)-Math.max(rect.top,0);if(visible>bestVis){bestVis=visible;activeIdx=i;}});
+  navItems.forEach((item,i)=>item.classList.toggle('active',i===activeIdx));
+  navItems[activeIdx]&&navItems[activeIdx].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  const pct=docH>0?Math.round((scrollY/docH)*100):0;
+  progFill.style.width=pct+'%';progPct.textContent=pct;
+}
+window.addEventListener('scroll',updateAll,{passive:true});
+window.addEventListener('resize',updateAll);
+updateAll();
+navItems.forEach((item,i)=>{item.addEventListener('click',()=>slides[i].scrollIntoView({behavior:'smooth',block:'start'}));});
+</script>
+</body>
+</html>
